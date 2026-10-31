@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Upload — DogDoor Studio{% endblock %}
+{% block content %}
+<h1>Upload images</h1>
+<p class="muted">
+  Add photos (or frames from a video) straight to a class folder. On your phone, open this page at
+  the computer's LAN address and pick images from your photo library.
+</p>
+
+<form class="card" method="post" action="/upload" enctype="multipart/form-data">
+  <div class="field">
+    <label>Class</label>
+    <select name="class_id">
+      {% for cid in roster.class_ids %}
+      <option value="{{ cid }}">{{ cid }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label>Images (multi-select / choose many)</label>
+    <input type="file" name="files" multiple accept="image/*" />
+  </div>
+  <button type="submit">Upload</button>
+</form>
+
+<div class="card">
+  <h2>Current counts</h2>
+  <table>
+    <tr><th>Class</th><th>Images</th></tr>
+    {% for cid in roster.class_ids %}
+    <tr><td class="mono">{{ cid }}</td><td>{{ counts[cid] }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

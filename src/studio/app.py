@@ -13,6 +13,8 @@ import io
 import json
 import shutil
 import threading
+import time
+from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
@@ -116,6 +118,32 @@ def media(class_id: str, name: str):
     if DATA_RAW.resolve() not in p.parents:
         raise HTTPException(400, "Invalid path")
     return FileResponse(str(p))
+
+
+# ---- Upload (from phone / bulk) -----------------------------------------
+@app.get("/upload", response_class=HTMLResponse)
+def upload_page(request: Request):
+    roster, counts = _roster_and_counts()
+    return templates.TemplateResponse(
+        request, "upload.html", {"roster": roster, "counts": counts}
+    )
+
+
+@app.post("/upload")
+async def upload(files: list[UploadFile] = File(...), class_id: str = Form(...)):
+    roster, _ = _roster_and_counts()
+    if class_id not in roster.class_ids:
+        raise HTTPException(400, "Unknown class")
+    out = DATA_RAW / class_id
+    out.mkdir(parents=True, exist_ok=True)
+    saved = 0
+    for f in files:
+        if not f.filename:
+            continue
+        name = Path(f.filename).name
+        (out / f"{int(time.time() * 1000)}_{name}").write_bytes(await f.read())
+        saved += 1
+    return RedirectResponse(f"/datasets/{class_id}", status_code=303)
 
 
 # ---- Training ------------------------------------------------------------
