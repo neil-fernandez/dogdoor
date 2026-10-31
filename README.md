@@ -13,6 +13,8 @@ own animals, then deploy it to the same hardware.
 
 ## Status
 
+Live state + exact "done → next" order: see **`STATUS.md`**. Summary:
+
 - Phase 0 — requirements, safety spec, FMEA: **done**.
 - Phase 1 — vision pipeline + training studio: **implemented**, pending real data.
 - Phases 2–6 — virtual sim, bench, physical, safety, field: pending (see `SPEC.md`).
@@ -67,6 +69,9 @@ The studio runs without torch installed (torch is imported only when a training 
 ## Repo layout
 
 ```
+STATUS.md                 live state: what's done, what's next, recovery prompt
+AGENTS.md                 operating brief for AI coding assistants
+SPEC.md                   system specification
 config/roster.yaml        enrolled animals (single source of truth for training + runtime)
 docs/safety.md            safety requirements + FMEA
 docs/data_collection.md   how to collect/label a generalizable dataset
