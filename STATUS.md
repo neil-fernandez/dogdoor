@@ -61,16 +61,16 @@ safety. The ML pipeline never drives the motor directly.
 | 7 | Document venv setup | `0329fa0` |
 | 8 | Slick evals: live progress, confusion heatmap, data-quality nudge | `ab34881` |
 | 9 | HEIC support + first real training pass (88.5% dog accuracy) | `a0ce5e4` |
-| 10 | ArcFace embedding prototype — beats classifier (92.3% vs 88.5%) | `HEAD` |
+| 10 | ArcFace embedding prototype — beats classifier (92.3% vs 88.5%) | `cce3154` |
+| 11 | Wire ArcFace embedding into inference (gallery + open-set threshold) | `HEAD` |
 
 ## Next (exact order)
 
 1. **More data** — target 200+ per dog (currently ~43/dog); add `other` photos (people/cats/empty doorway) + any video.
-2. **Retrain with `other`** — once `other` has images, retrain (embedding as primary).
-3. **Wire embedding into inference** — update `infer.py`/studio to use the gallery + a distance threshold (open-set "unknown").
-4. **Error thumbnails** — show misclassified validation images.
-5. Add a **Dockerfile** and a `no_grad` feature-extraction speedup (faster CPU training).
-6. **Hardware phases** (SPEC.md milestones 2–6): control sim → bench → physical → safety → field.
+2. **Retrain with `other`** — once `other` has images, retrain (embedding as primary, threshold saved).
+3. **Error thumbnails** — show misclassified validation images.
+4. Add a **Dockerfile** and a `no_grad` feature-extraction speedup (faster CPU training).
+5. **Hardware phases** (SPEC.md milestones 2–6): control sim → bench → physical → safety → field.
 
 ## Blockers
 

@@ -40,11 +40,15 @@
   <h2>Classification</h2>
   {% if predictions %}
   <table>
-    <tr><th>Animal</th><th>Confidence</th></tr>
-    {% for name, prob in predictions %}
-    <tr><td class="mono">{{ name }}</td><td>{{ (prob * 100) | round(1) }}%</td></tr>
+    <tr><th>Animal</th><th>{{ 'Similarity' if method == 'embedding' else 'Confidence' }}</th></tr>
+    {% for name, score in predictions %}
+    <tr><td class="mono">{{ name }}</td><td>{{ (score * 100) | round(1) }}%</td></tr>
     {% endfor %}
   </table>
+  {% if is_unknown %}
+  <p class="muted">⚠ Below the known-dog threshold — likely <b>not an enrolled dog</b> (would be rejected).</p>
+  {% endif %}
+  {% if method %}<p class="muted">Method: {{ method }}.</p>{% endif %}
   {% else %}
   <p class="muted">No trained model yet — train a model to get animal classification.</p>
   {% endif %}

@@ -238,6 +238,8 @@ async def predict_upload(request: Request, file: UploadFile = File(...)):
             "detections": result["detections"],
             "animal": result["animal"],
             "predictions": result["predictions"],
+            "method": result.get("method"),
+            "is_unknown": result.get("is_unknown"),
         },
     )
 

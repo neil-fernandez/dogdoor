@@ -157,6 +157,7 @@ def train_embedding(cfg: dict) -> dict:
     best_state = None
     best_report = None
     best_gallery = None
+    best_threshold = None
 
     for epoch in range(1, epochs + 1):
         model.train()
@@ -177,6 +178,10 @@ def train_embedding(cfg: dict) -> dict:
         pred = (va_embs @ gallery.t()).argmax(1)
         report = compute_report(va_labels.tolist(), pred.tolist(), roster.class_names)
 
+        # Open-set threshold: the loosest in-class match on the training set.
+        own = (tr_embs @ gallery.t())[torch.arange(len(tr_embs)), tr_labels]
+        threshold = float(own.min())
+
         print(
             f"[{rid}] epoch {epoch}/{epochs} loss={running / len(train_idx):.4f} "
             f"acc={report['accuracy']:.3f} f1={report['macro_f1']:.3f}"
@@ -186,17 +191,23 @@ def train_embedding(cfg: dict) -> dict:
             best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
             best_report = report
             best_gallery = gallery.cpu()
+            best_threshold = threshold
 
     model.load_state_dict(best_state)
     torch.save(best_state, out_dir / "best.pt")
-    torch.save({"gallery": best_gallery, "classes": roster.class_names}, out_dir / "gallery.pt")
+    torch.save(
+        {"gallery": best_gallery, "classes": roster.class_names, "threshold": best_threshold},
+        out_dir / "gallery.pt",
+    )
     (out_dir / "classes.json").write_text(json.dumps(roster.class_names))
     cfg_out = {
         **cfg, "backbone": backbone, "embed_dim": embed_dim, "num_classes": roster.num_classes,
         "classes": roster.class_names, "counts": base.class_counts(), "method": "arcface",
+        "threshold": best_threshold,
     }
     (out_dir / "config.json").write_text(json.dumps(cfg_out, indent=2))
     best_report["run_id"] = rid
+    best_report["threshold"] = best_threshold
     (out_dir / "metrics.json").write_text(json.dumps(best_report, indent=2))
 
     print(f"Done. best accuracy={best_acc:.3f}. Run dir: {out_dir.name}")
