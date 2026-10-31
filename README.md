@@ -31,7 +31,12 @@ Live state + exact "done → next" order: see **`STATUS.md`**. Summary:
 ## Getting started
 
 1. Read `SPEC.md` and `docs/safety.md`.
-2. Install dependencies: `pip install -r requirements.txt`.
+2. Create a venv and install dependencies:
+
+   ```powershell
+   python -m venv .venv
+   .venv\Scripts\python.exe -m pip install -r requirements.txt
+   ```
 3. Collect and label images into `data/raw/<class>/` — see `docs/data_collection.md`.
 
 ### Train from the CLI

@@ -40,6 +40,7 @@ Commands:
   python -m src.vision.train --data-root data/processed/crops   # train on crops
 
 Python 3.14; deps in requirements.txt (torch 2.15+cpu, torchvision, ultralytics, fastapi, ...).
+Use the project venv: `.venv\Scripts\python.exe -m ...` (or activate `.venv\Scripts\Activate.ps1`).
 
 Safety principle: vision and RFID may SUGGEST an open; a deterministic microcontroller ENFORCES
 safety. The ML pipeline never drives the motor directly.
