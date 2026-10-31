@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Predict — DogDoor Studio{% endblock %}
+{% block content %}
+<h1>Prediction playground</h1>
+<p class="muted">
+  Upload an image. It runs the detector (YOLO) to find the animal, crops it, and — if a model has
+  been trained — classifies which dog it is.
+</p>
+
+<form class="card" method="post" action="/predict" enctype="multipart/form-data">
+  <input type="file" name="file" accept="image/*" required />
+  <button type="submit">Predict</button>
+</form>
+
+{% if original %}
+<div class="card">
+  <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+    <div>
+      <img src="data:image/png;base64,{{ original }}" style="max-width:280px; border-radius:0.5rem;" alt="Original" />
+      <p class="muted">Original</p>
+    </div>
+    <div>
+      <img src="data:image/png;base64,{{ annotated }}" style="max-width:280px; border-radius:0.5rem;" alt="Detections" />
+      <p class="muted">Detections</p>
+    </div>
+  </div>
+
+  <h2>Detections</h2>
+  {% if detections %}
+  <table>
+    <tr><th>Object</th><th>Confidence</th><th>Box</th></tr>
+    {% for d in detections[:8] %}
+    <tr><td class="mono">{{ d.name }}</td><td>{{ (d.conf * 100) | round(1) }}%</td><td class="mono">{{ d.box }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">Nothing detected.</p>
+  {% endif %}
+
+  <h2>Classification</h2>
+  {% if predictions %}
+  <table>
+    <tr><th>Animal</th><th>Confidence</th></tr>
+    {% for name, prob in predictions %}
+    <tr><td class="mono">{{ name }}</td><td>{{ (prob * 100) | round(1) }}%</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">No trained model yet — train a model to get animal classification.</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

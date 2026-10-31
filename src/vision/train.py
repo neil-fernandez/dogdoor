@@ -77,15 +77,17 @@ def train(cfg: dict) -> dict:
     backbone = cfg.get("backbone", "mobilenet_v3_large")
     freeze = cfg.get("freeze", True)
 
-    base = RosterDataset(DATA_RAW, roster, transform=None)
+    data_root = Path(cfg.get("data_root") or DATA_RAW)
+
+    base = RosterDataset(data_root, roster, transform=None)
     if len(base) == 0:
         raise RuntimeError(
-            "No images found under data/raw/<class>/. Add images first (see docs/data_collection.md)."
+            f"No images found under {data_root}/<class>/. Add images (or run preprocess) first."
         )
 
     train_idx, val_idx = stratified_split(base.samples, cfg.get("val_frac", 0.2), cfg.get("seed", 42))
-    train_ds = Subset(RosterDataset(DATA_RAW, roster, build_transforms(img_size, True)), train_idx)
-    val_ds = Subset(RosterDataset(DATA_RAW, roster, build_transforms(img_size, False)), val_idx)
+    train_ds = Subset(RosterDataset(data_root, roster, build_transforms(img_size, True)), train_idx)
+    val_ds = Subset(RosterDataset(data_root, roster, build_transforms(img_size, False)), val_idx)
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=0)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=0)
@@ -188,6 +190,7 @@ def train(cfg: dict) -> dict:
 def main():
     ap = argparse.ArgumentParser(description="Fine-tune the DogDoor roster classifier.")
     ap.add_argument("--roster", default=None)
+    ap.add_argument("--data-root", default=None, help="e.g. data/processed/crops (default: data/raw)")
     ap.add_argument("--backbone", default="mobilenet_v3_large")
     ap.add_argument("--epochs", type=int, default=25)
     ap.add_argument("--lr", type=float, default=3e-4)

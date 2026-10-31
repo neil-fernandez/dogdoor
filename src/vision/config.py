@@ -12,6 +12,8 @@ import yaml
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ROSTER = PROJECT_ROOT / "config" / "roster.yaml"
 DATA_RAW = PROJECT_ROOT / "data" / "raw"
+DATA_PROCESSED = PROJECT_ROOT / "data" / "processed"
+DATA_CROPS = DATA_PROCESSED / "crops"
 RUNS_DIR = PROJECT_ROOT / "runs"
 MODELS_DIR = PROJECT_ROOT / "models"
 

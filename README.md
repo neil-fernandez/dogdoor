@@ -40,15 +40,29 @@ python -m src.vision.train --backbone mobilenet_v3_large --epochs 25
 
 Outputs go to `runs/<run>/` (metrics, confusion matrix, weights) and `models/*.onnx`.
 
+### Detect → crop (optional but recommended)
+
+Run a pretrained YOLO11 detector over `data/raw/` and write animal crops:
+
+```powershell
+python -m src.vision.preprocess --model yolo11n.pt
+```
+
+Then train on the crops (more robust to background/clutter):
+
+```powershell
+python -m src.vision.train --data-root data/processed/crops
+```
+
 ### Training studio (web UI)
 
 ```powershell
 uvicorn src.studio.app:app --reload --port 8000
 ```
 
-Then open <http://localhost:8000> — label images, launch training, compare experiments, and view the
-confusion matrix + per-class metrics. The studio runs without torch installed (torch is imported
-only when a training job starts).
+Then open <http://localhost:8000> — label images, launch training, **test predictions on new images
+(the Predict playground)**, compare experiments, and view the confusion matrix + per-class metrics.
+The studio runs without torch installed (torch is imported only when a training job starts).
 
 ## Repo layout
 

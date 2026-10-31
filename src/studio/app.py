@@ -8,14 +8,17 @@ only when a training job starts, so labeling/experiments work without torch.
 """
 from __future__ import annotations
 
+import base64
+import io
 import json
 import shutil
 import threading
 
-from fastapi import FastAPI, Form, HTTPException, Request
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from PIL import Image, ImageDraw
 
 from src.vision.config import DATA_RAW, MODELS_DIR, PROJECT_ROOT, RUNS_DIR, list_images, load_roster
 
@@ -174,6 +177,45 @@ def experiment_detail(request: Request, run_dir: str):
     metrics = json.loads((p / "metrics.json").read_text())
     return templates.TemplateResponse(
         request, "experiment.html", {"run": run_dir, "metrics": metrics}
+    )
+
+
+# ---- Predict (playground) ------------------------------------------------
+@app.get("/predict", response_class=HTMLResponse)
+def predict_page(request: Request):
+    return templates.TemplateResponse(request, "predict.html", {})
+
+
+@app.post("/predict", response_class=HTMLResponse)
+async def predict_upload(request: Request, file: UploadFile = File(...)):
+    from src.vision.infer import predict  # lazy: imports torch + ultralytics
+
+    data = await file.read()
+    image = Image.open(io.BytesIO(data)).convert("RGB")
+    result = predict(image)
+
+    annotated = image.copy()
+    draw = ImageDraw.Draw(annotated)
+    for d in result["detections"][:6]:
+        x1, y1, x2, y2 = d["box"]
+        draw.rectangle([x1, y1, x2, y2], outline=(225, 29, 72), width=4)
+        draw.text((x1, max(0, y1 - 14)), f"{d['name']} {d['conf']:.2f}", fill=(225, 29, 72))
+
+    def b64(img: Image.Image) -> str:
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return base64.b64encode(buf.getvalue()).decode()
+
+    return templates.TemplateResponse(
+        request,
+        "predict.html",
+        {
+            "original": b64(image),
+            "annotated": b64(annotated),
+            "detections": result["detections"],
+            "animal": result["animal"],
+            "predictions": result["predictions"],
+        },
     )
 
 
