@@ -53,6 +53,8 @@ def build_transforms(img_size: int = 224, augment: bool = True):
                 T.ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.05),
                 T.ToTensor(),
                 T.Normalize(_IMAGENET_MEAN, _IMAGENET_STD),
+                # Occlusion robustness: randomly erase a region (toy in mouth, objects).
+                T.RandomErasing(p=0.5, scale=(0.02, 0.25), ratio=(0.3, 3.3)),
             ]
         )
     return T.Compose(
