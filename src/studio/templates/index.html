@@ -6,13 +6,16 @@
 
 <div class="card">
   <h2>Dataset</h2>
+  {% if low %}
+  <p class="muted">⚠ Some classes have very few images — collect more (target 50+ per class, 200+ ideally).</p>
+  {% endif %}
   <table>
     <tr><th>Class</th><th>Name</th><th>Images</th><th></th></tr>
     {% for cid in roster.class_ids %}
     <tr>
       <td class="mono">{{ cid }}</td>
       <td>{{ roster.index_to_name[roster.id_to_index[cid]] }}</td>
-      <td>{{ counts[cid] }}</td>
+      <td>{{ counts[cid] }}{% if cid in low %} <span class="badge bad">low</span>{% endif %}</td>
       <td><a class="btn secondary" href="/datasets/{{ cid }}">Label</a></td>
     </tr>
     {% endfor %}

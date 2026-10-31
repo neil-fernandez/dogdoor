@@ -31,9 +31,12 @@
       {% for name in metrics.class_names %}<th class="mono">{{ name }}</th>{% endfor %}
     </tr>
     {% for row in metrics.confusion_matrix %}
+    {% set rowi = loop.index0 %}
     <tr>
-      <th class="mono">{{ metrics.class_names[loop.index0] }}</th>
-      {% for cell in row %}<td>{{ cell }}</td>{% endfor %}
+      <th class="mono">{{ metrics.class_names[rowi] }}</th>
+      {% for cell in row %}
+      <td style="background: {{ heat[rowi][loop.index0].bg }}; {{ heat[rowi][loop.index0].fg }}">{{ cell }}</td>
+      {% endfor %}
     </tr>
     {% endfor %}
   </table>

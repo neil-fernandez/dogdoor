@@ -40,5 +40,39 @@
   </form>
 </div>
 
-<p class="muted">Requires <span class="mono">torchvision</span>. Check progress by refreshing — the latest run status is shown on the Experiments page.</p>
+<p class="muted">Requires <span class="mono">torchvision</span>. Progress updates live below.</p>
+
+<div class="card" id="train-status">
+  <h2>Training status</h2>
+  <p class="muted">Idle — start a job above.</p>
+</div>
+
+<script>
+  function renderStatus(s) {
+    const el = document.getElementById("train-status");
+    if (s.state === "idle") {
+      el.innerHTML = "<h2>Training status</h2><p class='muted'>Idle — start a job above.</p>";
+    } else if (s.state === "training") {
+      const pct = (s.epoch / s.total_epochs * 100).toFixed(0);
+      el.innerHTML =
+        "<h2>Training status</h2>" +
+        "<p>Epoch <b>" + s.epoch + "</b> / " + s.total_epochs +
+        " (" + pct + "%)</p>" +
+        "<p class='muted'>val accuracy <b>" + (s.val_accuracy * 100).toFixed(1) +
+        "%</b> · val F1 <b>" + (s.val_f1 * 100).toFixed(1) + "%</b></p>";
+    } else if (s.state === "done") {
+      el.innerHTML =
+        "<h2>Training status</h2>" +
+        "<p>Done — best macro-F1 <b>" + (s.best_f1 * 100).toFixed(1) + "%</b>. See Experiments.</p>";
+    }
+  }
+  async function poll() {
+    try {
+      const r = await fetch("/train/status");
+      renderStatus(await r.json());
+    } catch (e) { /* ignore */ }
+  }
+  poll();
+  setInterval(poll, 2000);
+</script>
 {% endblock %}

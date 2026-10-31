@@ -55,15 +55,17 @@ safety. The ML pipeline never drives the motor directly.
 | 3 | YOLO11 detection stage + prediction playground | `6502f85` |
 | 4 | Project memory: STATUS.md + AGENTS.md (recovery + operating brief) | `836e4da` |
 | 5 | Harness: `.opencode/` agent profiles + `docs/agent_orchestration.md` | `a9cbf64` |
-| 6 | Test suite (pytest) + `--no-pretrained` training option | `HEAD` |
+| 6 | Test suite (pytest) + `--no-pretrained` training option | `cb7f72a` |
+| 7 | Document venv setup | `0329fa0` |
+| 8 | Slick evals: live progress, confusion heatmap, data-quality nudge | `HEAD` |
 
 ## Next (exact order)
 
 1. **Data (blocker)** — add photos to `data/raw/{beau,red,misty,other}` + any video; note counts.
 2. **First real training pass** — preprocess → train → evaluate; report per-dog accuracy + confusion matrix.
-3. **Slick evals** — live training progress, confusion heatmap + error thumbnails, data-quality nudge.
+3. **Error thumbnails** — show misclassified validation images (the remaining slick-eval).
 4. **(later)** ArcFace/metric-learning mode (PetFace reference) for best "fine-tune for own dogs" generalisation.
-5. Add **pytest** suite + **Dockerfile**.
+5. Add a **Dockerfile** for reproducible training/studio runs.
 6. **Hardware phases** (SPEC.md milestones 2–6): control sim → bench → physical → safety → field.
 
 ## Blockers

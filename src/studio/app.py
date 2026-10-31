@@ -32,6 +32,8 @@ templates = Jinja2Templates(directory=str(PROJECT_ROOT / "src" / "studio" / "tem
 
 _TRAIN_THREAD: threading.Thread | None = None
 
+LOW_THRESHOLD = 50  # warn when a class has fewer images than this
+
 
 def _roster_and_counts():
     roster = load_roster()
@@ -57,9 +59,10 @@ def _list_runs():
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     roster, counts = _roster_and_counts()
+    low = [cid for cid, n in counts.items() if n < LOW_THRESHOLD]
     return templates.TemplateResponse(
         request, "index.html",
-        {"roster": roster, "counts": counts, "runs": _list_runs()[:5]},
+        {"roster": roster, "counts": counts, "low": low, "runs": _list_runs()[:5]},
     )
 
 
@@ -67,8 +70,9 @@ def index(request: Request):
 @app.get("/datasets", response_class=HTMLResponse)
 def datasets(request: Request):
     roster, counts = _roster_and_counts()
+    low = [cid for cid, n in counts.items() if n < LOW_THRESHOLD]
     return templates.TemplateResponse(
-        request, "datasets.html", {"roster": roster, "counts": counts}
+        request, "datasets.html", {"roster": roster, "counts": counts, "low": low}
     )
 
 
@@ -175,8 +179,27 @@ def experiment_detail(request: Request, run_dir: str):
     if not p.exists() or not (p / "metrics.json").exists():
         raise HTTPException(404, "Run not found")
     metrics = json.loads((p / "metrics.json").read_text())
+
+    matrix = metrics.get("confusion_matrix", [])
+    max_count = max((max(row) for row in matrix), default=0)
+    heat = []
+    for row in matrix:
+        heat_row = []
+        for c in row:
+            if max_count == 0 or c == 0:
+                heat_row.append({"bg": "transparent", "fg": ""})
+            else:
+                ratio = c / max_count
+                heat_row.append(
+                    {
+                        "bg": f"rgba(26,125,224,{min(ratio, 0.85):.2f})",
+                        "fg": "color:#fff;" if ratio > 0.55 else "",
+                    }
+                )
+        heat.append(heat_row)
+
     return templates.TemplateResponse(
-        request, "experiment.html", {"run": run_dir, "metrics": metrics}
+        request, "experiment.html", {"run": run_dir, "metrics": metrics, "heat": heat}
     )
 
 

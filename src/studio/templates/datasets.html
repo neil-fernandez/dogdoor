@@ -5,13 +5,16 @@
 <p class="muted">Images are stored in <span class="mono">data/raw/&lt;class&gt;/</span>. Click <b>Label</b> to review and move images between classes.</p>
 
 <div class="card">
+  {% if low %}
+  <p class="muted">⚠ These classes are low on images — aim for 50+ per class, 200+ ideally.</p>
+  {% endif %}
   <table>
     <tr><th>Class</th><th>Name</th><th>Images</th><th></th></tr>
     {% for cid in roster.class_ids %}
     <tr>
       <td class="mono">{{ cid }}</td>
       <td>{{ roster.index_to_name[roster.id_to_index[cid]] }}</td>
-      <td>{{ counts[cid] }}</td>
+      <td>{{ counts[cid] }}{% if cid in low %} <span class="badge bad">low</span>{% endif %}</td>
       <td><a class="btn secondary" href="/datasets/{{ cid }}">Label</a></td>
     </tr>
     {% endfor %}
