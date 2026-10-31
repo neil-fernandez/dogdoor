@@ -6,8 +6,9 @@ Last updated: 2026-10-31
 
 The software foundation is built and verified end-to-end: a **generalizable, roster-driven training
 pipeline** (YOLO11 detect → fine-tune a classifier → export ONNX) and a **FastAPI training studio**
-(label / train / predict / evaluate / compare). **First real training pass done: 88.5% validation
-accuracy distinguishing Beau/Red/Misty** (130 crops from 146 images). The `other` class is still
+(label / train / predict / evaluate / compare). **First real training pass: 88.5% (softmax
+classifier) vs 92.3% (ArcFace embedding) distinguishing Beau/Red/Misty** on 130 crops from 146
+images — the ArcFace embedding is preferred (more accurate + open-set). The `other` class is still
 empty (untrained), so stranger-rejection isn't modelled yet. Hardware not started.
 
 ## New chat recovery prompt
@@ -59,15 +60,16 @@ safety. The ML pipeline never drives the motor directly.
 | 6 | Test suite (pytest) + `--no-pretrained` training option | `cb7f72a` |
 | 7 | Document venv setup | `0329fa0` |
 | 8 | Slick evals: live progress, confusion heatmap, data-quality nudge | `ab34881` |
-| 9 | HEIC support + first real training pass (88.5% dog accuracy) | `HEAD` |
+| 9 | HEIC support + first real training pass (88.5% dog accuracy) | `a0ce5e4` |
+| 10 | ArcFace embedding prototype — beats classifier (92.3% vs 88.5%) | `HEAD` |
 
 ## Next (exact order)
 
 1. **More data** — target 200+ per dog (currently ~43/dog); add `other` photos (people/cats/empty doorway) + any video.
-2. **Retrain with `other`** — once `other` has images, retrain the full 4-way model.
-3. **Error thumbnails** — show misclassified validation images (the remaining slick-eval).
-4. **(later)** ArcFace/metric-learning mode (PetFace reference) for best "fine-tune for own dogs" generalisation.
-5. Add a **Dockerfile** for reproducible training/studio runs.
+2. **Retrain with `other`** — once `other` has images, retrain (embedding as primary).
+3. **Wire embedding into inference** — update `infer.py`/studio to use the gallery + a distance threshold (open-set "unknown").
+4. **Error thumbnails** — show misclassified validation images.
+5. Add a **Dockerfile** and a `no_grad` feature-extraction speedup (faster CPU training).
 6. **Hardware phases** (SPEC.md milestones 2–6): control sim → bench → physical → safety → field.
 
 ## Blockers
