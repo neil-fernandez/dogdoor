@@ -6,8 +6,9 @@ Last updated: 2026-10-31
 
 The software foundation is built and verified end-to-end: a **generalizable, roster-driven training
 pipeline** (YOLO11 detect → fine-tune a classifier → export ONNX) and a **FastAPI training studio**
-(label / train / predict / evaluate / compare). Hardware is not started. **The blocker is data** —
-no real dog photos have been added yet.
+(label / train / predict / evaluate / compare). **First real training pass done: 88.5% validation
+accuracy distinguishing Beau/Red/Misty** (130 crops from 146 images). The `other` class is still
+empty (untrained), so stranger-rejection isn't modelled yet. Hardware not started.
 
 ## New chat recovery prompt
 
@@ -57,12 +58,13 @@ safety. The ML pipeline never drives the motor directly.
 | 5 | Harness: `.opencode/` agent profiles + `docs/agent_orchestration.md` | `a9cbf64` |
 | 6 | Test suite (pytest) + `--no-pretrained` training option | `cb7f72a` |
 | 7 | Document venv setup | `0329fa0` |
-| 8 | Slick evals: live progress, confusion heatmap, data-quality nudge | `HEAD` |
+| 8 | Slick evals: live progress, confusion heatmap, data-quality nudge | `ab34881` |
+| 9 | HEIC support + first real training pass (88.5% dog accuracy) | `HEAD` |
 
 ## Next (exact order)
 
-1. **Data (blocker)** — add photos to `data/raw/{beau,red,misty,other}` + any video; note counts.
-2. **First real training pass** — preprocess → train → evaluate; report per-dog accuracy + confusion matrix.
+1. **More data** — target 200+ per dog (currently ~43/dog); add `other` photos (people/cats/empty doorway) + any video.
+2. **Retrain with `other`** — once `other` has images, retrain the full 4-way model.
 3. **Error thumbnails** — show misclassified validation images (the remaining slick-eval).
 4. **(later)** ArcFace/metric-learning mode (PetFace reference) for best "fine-tune for own dogs" generalisation.
 5. Add a **Dockerfile** for reproducible training/studio runs.

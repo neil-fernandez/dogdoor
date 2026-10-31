@@ -9,6 +9,7 @@ onnxscript
 onnxruntime
 ultralytics
 pytest
+pillow-heif
 fastapi
 uvicorn[standard]
 jinja2

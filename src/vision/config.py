@@ -17,7 +17,7 @@ DATA_CROPS = DATA_PROCESSED / "crops"
 RUNS_DIR = PROJECT_ROOT / "runs"
 MODELS_DIR = PROJECT_ROOT / "models"
 
-IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
+IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".heic", ".heif"}
 
 
 def list_images(folder: Path) -> list[Path]:

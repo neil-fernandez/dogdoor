@@ -7,6 +7,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 import torchvision.transforms as T
 
+from src.vision._pil import open_image
 from src.vision.config import Roster, list_images
 
 _IMAGENET_MEAN = [0.485, 0.456, 0.406]
@@ -30,7 +31,7 @@ class RosterDataset(Dataset):
 
     def __getitem__(self, i):
         path, label = self.samples[i]
-        img = Image.open(path).convert("RGB")
+        img = open_image(path)
         if self.transform is not None:
             img = self.transform(img)
         return img, label

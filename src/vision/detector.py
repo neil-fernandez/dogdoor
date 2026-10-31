@@ -11,6 +11,7 @@ from pathlib import Path
 
 from PIL import Image
 
+from src.vision._pil import open_image
 from src.vision.config import DATA_CROPS, DATA_RAW, Roster, list_images
 
 # Ultralytics prints emoji in its progress logs; make sure stdout is UTF-8.
@@ -83,7 +84,7 @@ def crop_dataset(
         dst.mkdir(parents=True, exist_ok=True)
         n = 0
         for p in list_images(DATA_RAW / cid):
-            img = Image.open(p).convert("RGB")
+            img = open_image(p)
             animal = largest_animal(detect(img, model_name=model_name, conf=conf))
             if animal is not None:
                 crop(img, animal["box"]).save(dst / p.name)
