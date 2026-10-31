@@ -1,0 +1,184 @@
+"""DogDoor training studio — local FastAPI app.
+
+Run from the project root:
+    uvicorn src.studio.app:app --reload --port 8000
+
+The studio is dependency-light at startup: torch/torchvision are imported lazily
+only when a training job starts, so labeling/experiments work without torch.
+"""
+from __future__ import annotations
+
+import json
+import shutil
+import threading
+
+from fastapi import FastAPI, Form, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+from src.vision.config import DATA_RAW, MODELS_DIR, PROJECT_ROOT, RUNS_DIR, list_images, load_roster
+
+app = FastAPI(title="DogDoor Studio")
+app.mount(
+    "/static",
+    StaticFiles(directory=str(PROJECT_ROOT / "src" / "studio" / "static")),
+    name="static",
+)
+templates = Jinja2Templates(directory=str(PROJECT_ROOT / "src" / "studio" / "templates"))
+
+_TRAIN_THREAD: threading.Thread | None = None
+
+
+def _roster_and_counts():
+    roster = load_roster()
+    counts = {cid: len(list_images(DATA_RAW / cid)) for cid in roster.class_ids}
+    return roster, counts
+
+
+def _list_runs():
+    if not RUNS_DIR.exists():
+        return []
+    runs = []
+    for m in sorted(RUNS_DIR.glob("*/metrics.json"), reverse=True):
+        try:
+            data = json.loads(m.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        data["dir"] = m.parent.name
+        runs.append(data)
+    return runs
+
+
+# ---- Dashboard -----------------------------------------------------------
+@app.get("/", response_class=HTMLResponse)
+def index(request: Request):
+    roster, counts = _roster_and_counts()
+    return templates.TemplateResponse(
+        request, "index.html",
+        {"roster": roster, "counts": counts, "runs": _list_runs()[:5]},
+    )
+
+
+# ---- Datasets + labeling -------------------------------------------------
+@app.get("/datasets", response_class=HTMLResponse)
+def datasets(request: Request):
+    roster, counts = _roster_and_counts()
+    return templates.TemplateResponse(
+        request, "datasets.html", {"roster": roster, "counts": counts}
+    )
+
+
+@app.get("/datasets/{class_id}", response_class=HTMLResponse)
+def label_class(request: Request, class_id: str):
+    roster, _ = _roster_and_counts()
+    if class_id not in roster.class_ids:
+        raise HTTPException(404, "Unknown class")
+    images = [p.name for p in list_images(DATA_RAW / class_id)]
+    return templates.TemplateResponse(
+        request, "label.html",
+        {"roster": roster, "class_id": class_id, "images": images},
+    )
+
+
+@app.post("/datasets/{class_id}/move")
+def move_image(class_id: str, image: str = Form(...), target: str = Form(...)):
+    roster, _ = _roster_and_counts()
+    if class_id not in roster.class_ids or target not in roster.class_ids:
+        raise HTTPException(400, "Unknown class")
+    src = (DATA_RAW / class_id / image).resolve()
+    if DATA_RAW.resolve() not in src.parents:
+        raise HTTPException(400, "Invalid path")
+    dst = DATA_RAW / target / image
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(src), str(dst))
+    return RedirectResponse(f"/datasets/{class_id}", status_code=303)
+
+
+@app.get("/media/{class_id}/{name}")
+def media(class_id: str, name: str):
+    roster, _ = _roster_and_counts()
+    if class_id not in roster.class_ids:
+        raise HTTPException(404, "Unknown class")
+    p = (DATA_RAW / class_id / name).resolve()
+    if DATA_RAW.resolve() not in p.parents:
+        raise HTTPException(400, "Invalid path")
+    return FileResponse(str(p))
+
+
+# ---- Training ------------------------------------------------------------
+@app.get("/train", response_class=HTMLResponse)
+def train_page(request: Request):
+    roster, counts = _roster_and_counts()
+    return templates.TemplateResponse(
+        request, "train.html", {"roster": roster, "counts": counts}
+    )
+
+
+def _run_training(cfg: dict):
+    try:
+        from src.vision import train as train_module  # lazy: imports torch
+
+        train_module.train(cfg)
+    except Exception as exc:  # pragma: no cover
+        print(f"training failed: {exc}")
+
+
+@app.post("/train/start")
+def start_train(
+    backbone: str = Form("mobilenet_v3_large"),
+    epochs: int = Form(25),
+    lr: float = Form(3e-4),
+    batch_size: int = Form(16),
+    img_size: int = Form(224),
+    freeze: str = Form("on"),
+):
+    global _TRAIN_THREAD
+    if _TRAIN_THREAD is not None and _TRAIN_THREAD.is_alive():
+        raise HTTPException(409, "A training job is already running")
+    cfg = {
+        "backbone": backbone,
+        "epochs": epochs,
+        "lr": lr,
+        "batch_size": batch_size,
+        "img_size": img_size,
+        "freeze": freeze == "on",
+    }
+    _TRAIN_THREAD = threading.Thread(target=_run_training, args=(cfg,), daemon=True)
+    _TRAIN_THREAD.start()
+    return RedirectResponse("/train", status_code=303)
+
+
+@app.get("/train/status")
+def train_status():
+    if not RUNS_DIR.exists():
+        return {"state": "idle"}
+    statuses = list(RUNS_DIR.glob("*/status.json"))
+    if not statuses:
+        return {"state": "idle"}
+    latest = max(statuses, key=lambda p: p.stat().st_mtime)
+    return json.loads(latest.read_text())
+
+
+# ---- Experiments ---------------------------------------------------------
+@app.get("/experiments", response_class=HTMLResponse)
+def experiments(request: Request):
+    return templates.TemplateResponse(request, "experiments.html", {"runs": _list_runs()})
+
+
+@app.get("/experiments/{run_dir}", response_class=HTMLResponse)
+def experiment_detail(request: Request, run_dir: str):
+    p = RUNS_DIR / run_dir
+    if not p.exists() or not (p / "metrics.json").exists():
+        raise HTTPException(404, "Run not found")
+    metrics = json.loads((p / "metrics.json").read_text())
+    return templates.TemplateResponse(
+        request, "experiment.html", {"run": run_dir, "metrics": metrics}
+    )
+
+
+# ---- Models --------------------------------------------------------------
+@app.get("/models", response_class=HTMLResponse)
+def models(request: Request):
+    files = sorted(p.name for p in MODELS_DIR.glob("*.onnx")) if MODELS_DIR.exists() else []
+    return templates.TemplateResponse(request, "models.html", {"models": files})

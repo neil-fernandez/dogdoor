@@ -1,0 +1,13 @@
+torch
+torchvision
+numpy
+pillow
+pyyaml
+scikit-learn
+onnx
+onnxscript
+onnxruntime
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart

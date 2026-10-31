@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Models — DogDoor Studio{% endblock %}
+{% block content %}
+<h1>Models</h1>
+<p class="muted">Exported ONNX models ready to deploy to the Raspberry Pi.</p>
+
+<div class="card">
+  {% if models %}
+  <table>
+    <tr><th>File</th></tr>
+    {% for m in models %}
+    <tr><td class="mono">{{ m }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">No exported models yet. Train a model to export ONNX.</p>
+  {% endif %}
+</div>
+{% endblock %}

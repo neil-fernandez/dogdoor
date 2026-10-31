@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ run }} — DogDoor Studio{% endblock %}
+{% block content %}
+<h1>{{ run }}</h1>
+<p class="muted">
+  Accuracy <b>{{ (metrics.accuracy * 100) | round(1) }}%</b> ·
+  Macro F1 <b>{{ (metrics.macro_f1 * 100) | round(1) }}%</b>
+</p>
+
+<div class="card">
+  <h2>Per-class metrics</h2>
+  <table>
+    <tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr>
+    {% for c in metrics.per_class %}
+    <tr>
+      <td class="mono">{{ c.name }}</td>
+      <td>{{ (c.precision * 100) | round(1) }}%</td>
+      <td>{{ (c.recall * 100) | round(1) }}%</td>
+      <td>{{ (c.f1 * 100) | round(1) }}%</td>
+      <td>{{ c.support }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card">
+  <h2>Confusion matrix <span class="muted">(rows = true, cols = predicted)</span></h2>
+  <table>
+    <tr>
+      <th></th>
+      {% for name in metrics.class_names %}<th class="mono">{{ name }}</th>{% endfor %}
+    </tr>
+    {% for row in metrics.confusion_matrix %}
+    <tr>
+      <th class="mono">{{ metrics.class_names[loop.index0] }}</th>
+      {% for cell in row %}<td>{{ cell }}</td>{% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

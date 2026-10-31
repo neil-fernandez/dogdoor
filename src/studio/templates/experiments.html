@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Experiments — DogDoor Studio{% endblock %}
+{% block content %}
+<h1>Experiments</h1>
+<p class="muted">Every training run, with its held-out evaluation metrics. Click a run to see the full report.</p>
+
+<div class="card">
+  {% if runs %}
+  <table>
+    <tr><th>Run</th><th>Accuracy</th><th>Macro F1</th><th>Classes</th></tr>
+    {% for r in runs %}
+    <tr>
+      <td><a href="/experiments/{{ r.dir }}">{{ r.dir }}</a></td>
+      <td>{{ (r.accuracy * 100) | round(1) }}%</td>
+      <td>{{ (r.macro_f1 * 100) | round(1) }}%</td>
+      <td class="mono">{{ r.class_names | join(", ") }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">No runs yet. Train a model first.</p>
+  {% endif %}
+</div>
+{% endblock %}

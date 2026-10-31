@@ -13,8 +13,8 @@ own animals, then deploy it to the same hardware.
 
 ## Status
 
-- Phase 0 — requirements, safety spec, FMEA: **done** (this repo).
-- Phase 1 — vision (detect → fine-tune classifier): **in progress**.
+- Phase 0 — requirements, safety spec, FMEA: **done**.
+- Phase 1 — vision pipeline + training studio: **implemented**, pending real data.
 - Phases 2–6 — virtual sim, bench, physical, safety, field: pending (see `SPEC.md`).
 
 ## Dogs
@@ -29,8 +29,26 @@ own animals, then deploy it to the same hardware.
 ## Getting started
 
 1. Read `SPEC.md` and `docs/safety.md`.
-2. Collect and label images: `docs/data_collection.md`.
-3. Train the classifier (Phase 1) — `src/vision/train.py` (added next).
+2. Install dependencies: `pip install -r requirements.txt`.
+3. Collect and label images into `data/raw/<class>/` — see `docs/data_collection.md`.
+
+### Train from the CLI
+
+```powershell
+python -m src.vision.train --backbone mobilenet_v3_large --epochs 25
+```
+
+Outputs go to `runs/<run>/` (metrics, confusion matrix, weights) and `models/*.onnx`.
+
+### Training studio (web UI)
+
+```powershell
+uvicorn src.studio.app:app --reload --port 8000
+```
+
+Then open <http://localhost:8000> — label images, launch training, compare experiments, and view the
+confusion matrix + per-class metrics. The studio runs without torch installed (torch is imported
+only when a training job starts).
 
 ## Repo layout
 
@@ -38,11 +56,12 @@ own animals, then deploy it to the same hardware.
 config/roster.yaml        enrolled animals (single source of truth for training + runtime)
 docs/safety.md            safety requirements + FMEA
 docs/data_collection.md   how to collect/label a generalizable dataset
-docs/architecture.md      system architecture + components
-src/vision/               detection + fine-tune + export (Phase 1)
+src/vision/               roster-driven training pipeline (config, dataset, model, train, export)
+src/studio/               FastAPI training studio (label / train / evaluate / compare)
 src/control/              ESP32 firmware (Phase 3)
-src/sim/                  virtual prototype (Phase 2)
+src/sim/                  virtual control prototype (Phase 2)
+requirements.txt          Python dependencies
 data/raw/<animal>/        images per animal (gitignored — personal photos)
-data/processed/           crops, splits, manifests (gitignored)
-models/                   exported model weights (gitignored)
+runs/                     training-run metrics + weights (gitignored)
+models/                   exported ONNX models (gitignored)
 ```

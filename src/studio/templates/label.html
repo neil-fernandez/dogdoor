@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Label {{ class_id }} — DogDoor Studio{% endblock %}
+{% block content %}
+<h1>Labeling: <span class="mono">{{ class_id }}</span></h1>
+<p class="muted">{{ images | length }} image(s). Select a new class and press <b>Move</b> to re-label.</p>
+
+{% if images %}
+<div class="grid">
+  {% for image in images %}
+  <form class="tile" method="post" action="/datasets/{{ class_id }}/move">
+    <input type="hidden" name="image" value="{{ image }}" />
+    <img src="/media/{{ class_id }}/{{ image }}" loading="lazy" alt="{{ image }}" />
+    <select name="target">
+      {% for cid in roster.class_ids %}
+      <option value="{{ cid }}" {% if cid == class_id %}selected{% endif %}>{{ cid }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Move</button>
+  </form>
+  {% endfor %}
+</div>
+{% else %}
+<p class="muted">No images in this class yet. Drop files into <span class="mono">data/raw/{{ class_id }}/</span>.</p>
+{% endif %}
+{% endblock %}

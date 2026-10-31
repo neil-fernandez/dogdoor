@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Datasets — DogDoor Studio{% endblock %}
+{% block content %}
+<h1>Datasets</h1>
+<p class="muted">Images are stored in <span class="mono">data/raw/&lt;class&gt;/</span>. Click <b>Label</b> to review and move images between classes.</p>
+
+<div class="card">
+  <table>
+    <tr><th>Class</th><th>Name</th><th>Images</th><th></th></tr>
+    {% for cid in roster.class_ids %}
+    <tr>
+      <td class="mono">{{ cid }}</td>
+      <td>{{ roster.index_to_name[roster.id_to_index[cid]] }}</td>
+      <td>{{ counts[cid] }}</td>
+      <td><a class="btn secondary" href="/datasets/{{ cid }}">Label</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

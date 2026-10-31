@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}DogDoor Studio{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<p class="muted">Enrolled animals and current dataset size. Collect more images if any class is thin.</p>
+
+<div class="card">
+  <h2>Dataset</h2>
+  <table>
+    <tr><th>Class</th><th>Name</th><th>Images</th><th></th></tr>
+    {% for cid in roster.class_ids %}
+    <tr>
+      <td class="mono">{{ cid }}</td>
+      <td>{{ roster.index_to_name[roster.id_to_index[cid]] }}</td>
+      <td>{{ counts[cid] }}</td>
+      <td><a class="btn secondary" href="/datasets/{{ cid }}">Label</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card">
+  <h2>Recent runs</h2>
+  {% if runs %}
+  <table>
+    <tr><th>Run</th><th>Accuracy</th><th>Macro F1</th></tr>
+    {% for r in runs %}
+    <tr>
+      <td><a href="/experiments/{{ r.dir }}">{{ r.dir }}</a></td>
+      <td>{{ (r.accuracy * 100) | round(1) }}%</td>
+      <td>{{ (r.macro_f1 * 100) | round(1) }}%</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="muted">No training runs yet. Add images, then Train.</p>
+  {% endif %}
+</div>
+{% endblock %}
