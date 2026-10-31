@@ -56,6 +56,11 @@ def _list_runs():
 
 
 # ---- Dashboard -----------------------------------------------------------
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     roster, counts = _roster_and_counts()
