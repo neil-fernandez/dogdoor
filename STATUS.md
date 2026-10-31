@@ -28,7 +28,8 @@ First run:
   Get-Content AGENTS.md
   Get-Content SPEC.md
 
-Then read docs/safety.md and docs/data_collection.md as needed. STATUS.md is the live state.
+Then read docs/safety.md, docs/data_collection.md, and docs/agent_orchestration.md as needed.
+STATUS.md is the live state. The harness lives in .opencode/ (agent profiles + opencode.jsonc).
 
 Commands:
   python -m compileall -q src                                   # syntax check
@@ -50,6 +51,8 @@ safety. The ML pipeline never drives the motor directly.
 | 1 | Scaffold: spec, safety/FMEA, data plan, roster | `58b746a` |
 | 2 | Vision pipeline + training studio (label/train/experiments/models) | `4475e53` |
 | 3 | YOLO11 detection stage + prediction playground | `6502f85` |
+| 4 | Project memory: STATUS.md + AGENTS.md (recovery + operating brief) | `836e4da` |
+| 5 | Harness: `.opencode/` agent profiles + `docs/agent_orchestration.md` | `HEAD` |
 
 ## Next (exact order)
 

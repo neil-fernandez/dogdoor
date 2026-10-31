@@ -18,6 +18,11 @@ A smart pet door for three toy poodles. The plan lives in `SPEC.md`; the **live 
 Planner (deepseek-v4-pro) writes specs and reviews; implementer (deepseek-v4.1-flash) writes code;
 explore (read-only) researches; reviewer (gpt-6-luna, optional) gives second opinions on safety/ML.
 
+Full setup and cost-effective delegation rules: **`docs/agent_orchestration.md`**. The enforceable
+permission profiles live in **`.opencode/`** (`agents/general.md`, `explore.md`, `reviewer.md`, and
+`opencode.jsonc`, which whitelists subagent task delegation). Start opencode from the project root so
+the profiles load; restart after changing them.
+
 ## File ownership
 
 - **Planner-owned** (implementers never edit): `SPEC.md`, `STATUS.md`, `AGENTS.md`, `README.md`,
