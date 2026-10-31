@@ -33,6 +33,7 @@ STATUS.md is the live state. The harness lives in .opencode/ (agent profiles + o
 
 Commands:
   python -m compileall -q src                                   # syntax check
+  python -m pytest -q                                           # test suite
   uvicorn src.studio.app:app --port 8000                        # studio -> http://localhost:8000
   python -m src.vision.preprocess --model yolo11n.pt            # detect -> crop
   python -m src.vision.train --backbone mobilenet_v3_large --epochs 25
@@ -52,7 +53,8 @@ safety. The ML pipeline never drives the motor directly.
 | 2 | Vision pipeline + training studio (label/train/experiments/models) | `4475e53` |
 | 3 | YOLO11 detection stage + prediction playground | `6502f85` |
 | 4 | Project memory: STATUS.md + AGENTS.md (recovery + operating brief) | `836e4da` |
-| 5 | Harness: `.opencode/` agent profiles + `docs/agent_orchestration.md` | `HEAD` |
+| 5 | Harness: `.opencode/` agent profiles + `docs/agent_orchestration.md` | `a9cbf64` |
+| 6 | Test suite (pytest) + `--no-pretrained` training option | `HEAD` |
 
 ## Next (exact order)
 

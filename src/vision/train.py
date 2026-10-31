@@ -76,6 +76,7 @@ def train(cfg: dict) -> dict:
     lr = cfg.get("lr", 3e-4)
     backbone = cfg.get("backbone", "mobilenet_v3_large")
     freeze = cfg.get("freeze", True)
+    pretrained = cfg.get("pretrained", True)
 
     data_root = Path(cfg.get("data_root") or DATA_RAW)
 
@@ -92,7 +93,7 @@ def train(cfg: dict) -> dict:
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=0)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=0)
 
-    model = build_model(backbone, roster.num_classes, freeze=freeze).to(device)
+    model = build_model(backbone, roster.num_classes, freeze=freeze, pretrained=pretrained).to(device)
     weights = class_weights(roster, base.samples, train_idx).to(device)
     criterion = nn.CrossEntropyLoss(weight=weights)
     optimizer = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=lr)
@@ -198,6 +199,8 @@ def main():
     ap.add_argument("--img-size", type=int, default=224)
     ap.add_argument("--freeze", dest="freeze", action="store_true", default=True)
     ap.add_argument("--no-freeze", dest="freeze", action="store_false")
+    ap.add_argument("--pretrained", dest="pretrained", action="store_true", default=True)
+    ap.add_argument("--no-pretrained", dest="pretrained", action="store_false")
     ap.add_argument("--val-frac", type=float, default=0.2)
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()

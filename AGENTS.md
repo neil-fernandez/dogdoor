@@ -33,10 +33,8 @@ the profiles load; restart after changing them.
 
 ```powershell
 python -m compileall -q src
-# smoke: all studio pages render
-python -c "from fastapi.testclient import TestClient; from src.studio.app import app; c=TestClient(app); print([c.get(p).status_code for p in ['/','/datasets','/train','/predict','/experiments','/models']])"
-# fast training smoke (tiny synthetic data only)
-python -m src.vision.train --backbone mobilenet_v3_small --epochs 1 --img-size 32 --batch-size 4
+python -m pytest -q                # full suite (unit + API + training smoke)
+python -m pytest -q -m "not slow"  # fast checks only (skip training smoke)
 ```
 
 ## Cost control
