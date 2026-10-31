@@ -1,0 +1,23 @@
+# Enrolled animals for this deployment.
+#
+# GENERALIZABLE DESIGN: to support a new household, add/remove animals here,
+# collect images into data/raw/<id>/, re-run training, and export a new model.
+# Nothing else in the pipeline is hard-coded to a specific animal.
+
+version: 1
+
+# The "none of the above" class — always rejected by the door.
+negative_class:
+  id: other
+  name: Other
+
+animals:
+  - id: beau
+    name: Beau
+    description: Black toy poodle
+  - id: red
+    name: Red
+    description: Light-brown toy poodle
+  - id: misty
+    name: Misty
+    description: White / dark-brown toy poodle
