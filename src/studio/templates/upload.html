@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Upload — DogDoor Studio{% endblock %}
 {% block content %}
-<h1>Upload images</h1>
+<h1>Upload images &amp; videos</h1>
 <p class="muted">
-  Add photos (or frames from a video) straight to a class folder. On your phone, open this page at
-  the computer's LAN address and pick images from your photo library.
+  Add photos <b>or video clips</b> to a class. Videos are automatically sampled into frames
+  (blurry frames skipped). On your phone, open this page at the computer's LAN address and pick
+  straight from your photo library.
 </p>
+
+{% if done %}
+<p class="muted" style="color: var(--ok);">✓ {{ done }}</p>
+{% endif %}
 
 <form class="card" method="post" action="/upload" enctype="multipart/form-data">
   <div class="field">
@@ -17,8 +22,8 @@
     </select>
   </div>
   <div class="field">
-    <label>Images (multi-select / choose many)</label>
-    <input type="file" name="files" multiple accept="image/*" />
+    <label>Images / videos (multi-select)</label>
+    <input type="file" name="files" multiple accept="image/*,video/*" />
   </div>
   <button type="submit">Upload</button>
 </form>

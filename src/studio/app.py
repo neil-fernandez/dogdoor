@@ -15,6 +15,7 @@ import shutil
 import threading
 import time
 from pathlib import Path
+from urllib.parse import quote
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
@@ -22,7 +23,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from PIL import Image, ImageDraw
 
-from src.vision.config import DATA_RAW, MODELS_DIR, PROJECT_ROOT, RUNS_DIR, list_images, load_roster
+from src.vision.config import DATA_RAW, IMAGE_EXTS, MODELS_DIR, PROJECT_ROOT, RUNS_DIR, list_images, load_roster
 
 app = FastAPI(title="DogDoor Studio")
 app.mount(
@@ -124,26 +125,45 @@ def media(class_id: str, name: str):
 @app.get("/upload", response_class=HTMLResponse)
 def upload_page(request: Request):
     roster, counts = _roster_and_counts()
+    done = request.query_params.get("done")
     return templates.TemplateResponse(
-        request, "upload.html", {"roster": roster, "counts": counts}
+        request, "upload.html", {"roster": roster, "counts": counts, "done": done}
     )
 
 
 @app.post("/upload")
 async def upload(files: list[UploadFile] = File(...), class_id: str = Form(...)):
+    from src.vision.extract_frames import VIDEO_EXTS, extract as extract_video_frames
+
     roster, _ = _roster_and_counts()
     if class_id not in roster.class_ids:
         raise HTTPException(400, "Unknown class")
     out = DATA_RAW / class_id
     out.mkdir(parents=True, exist_ok=True)
-    saved = 0
+
+    saved_images = 0
+    saved_videos = 0
+    total_frames = 0
     for f in files:
         if not f.filename:
             continue
+        data = await f.read()
         name = Path(f.filename).name
-        (out / f"{int(time.time() * 1000)}_{name}").write_bytes(await f.read())
-        saved += 1
-    return RedirectResponse(f"/datasets/{class_id}", status_code=303)
+        suffix = Path(f.filename).suffix.lower()
+        if suffix in IMAGE_EXTS:
+            (out / f"{int(time.time() * 1000)}_{name}").write_bytes(data)
+            saved_images += 1
+        elif suffix in VIDEO_EXTS:
+            tmp = PROJECT_ROOT / ".tmp_videos"
+            tmp.mkdir(parents=True, exist_ok=True)
+            vpath = tmp / f"{int(time.time() * 1000)}_{name}"
+            vpath.write_bytes(data)
+            total_frames += extract_video_frames(vpath, class_id, every=0.5, min_quality=50.0, out_root=DATA_RAW)
+            vpath.unlink(missing_ok=True)
+            saved_videos += 1
+
+    summary = f"{saved_images} image(s), {saved_videos} video(s) -> {total_frames} frames added to '{class_id}'"
+    return RedirectResponse(f"/upload?done={quote(summary)}", status_code=303)
 
 
 # ---- Training ------------------------------------------------------------
